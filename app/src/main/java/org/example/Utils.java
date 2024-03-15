@@ -52,18 +52,18 @@ public class Utils {
     }
 
 
-    public static double getDistance(FeatureVector v1, FeatureVector v2) {
-        List<Double> firstCoordinates = v1.getCoordinates();
-        List<Double> secondCoordinates = v2.getCoordinates();
+    // public static double getDistance(FeatureVector v1, FeatureVector v2) {
+    //     List<Double> firstCoordinates = v1.getCoordinates();
+    //     List<Double> secondCoordinates = v2.getCoordinates();
 
-        double distance = 0.0;
-        for (int i = 0; i < firstCoordinates.size(); i++) {
-            double diff = firstCoordinates.get(i) - secondCoordinates.get(i);
-            distance += diff * diff;
-        }
+    //     double distance = 0.0;
+    //     for (int i = 0; i < firstCoordinates.size(); i++) {
+    //         double diff = firstCoordinates.get(i) - secondCoordinates.get(i);
+    //         distance += diff * diff;
+    //     }
 
-        return Math.sqrt(distance);
-    }
+    //     return Math.sqrt(distance);
+    // }
 
 
     private static String extractCentroid(String line) {
@@ -86,7 +86,7 @@ public class Utils {
         for (int i = 0; i < oldCentroids.size(); i++) {
             FeatureVector oldCentroid = new FeatureVector(oldCentroids.get(i), 1);
             FeatureVector newCentroid = new FeatureVector(newCentroids.get(i), 1);
-            double distance = getDistance(oldCentroid, newCentroid);
+            double distance = oldCentroid.getDistanceFrom(newCentroid);
             if (Math.abs(distance) > threshold) {
                 return false;
             }

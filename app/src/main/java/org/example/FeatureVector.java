@@ -51,4 +51,17 @@ public class FeatureVector {
 
         return sb.toString();
     }
+
+    public double getDistanceFrom(FeatureVector otherFV) {
+        List<Double> firstCoordinates = this.coordinates;
+        List<Double> secondCoordinates = otherFV.coordinates;
+
+        double distance = 0.0;
+        for (int i = 0; i < firstCoordinates.size(); i++) {
+            double diff = firstCoordinates.get(i) - secondCoordinates.get(i);
+            distance += diff * diff;
+        }
+
+        return Math.sqrt(distance);
+    }
 }

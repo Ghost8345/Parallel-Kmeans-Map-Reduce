@@ -45,7 +45,7 @@ public class KMeans {
             FeatureVector fv = new FeatureVector(value.toString(),1);
 
             for (int i = 0; i < centroids.size(); i++) {
-                double distance = Utils.getDistance(fv, centroids.get(i));
+                double distance = fv.getDistanceFrom(centroids.get(i));
                 if (distance < minDistance) {
                     minDistance = distance;
                     minIndex = i;

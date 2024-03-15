@@ -35,7 +35,7 @@ public class FeatureVector {
     public static void setThreshold(double thres) {
         threshold = thres;
     }
-
+    
 
     @Override
     public String toString() {
@@ -50,29 +50,5 @@ public class FeatureVector {
         }
 
         return sb.toString();
-    }
-
-    public double getDistanceFrom(FeatureVector otherFV) {
-        List<Double> firstCoordinates = this.getCoordinates();
-        List<Double> secondCoordinates = otherFV.getCoordinates();
-
-        double distance = 0.0;
-        for (int i = 0; i < firstCoordinates.size(); i++) {
-            double diff = firstCoordinates.get(i) - secondCoordinates.get(i);
-            distance += diff * diff;
-        }
-
-        return Math.sqrt(distance);
-    }
-
-    public boolean equals(FeatureVector otherFV){
-        if (this.coordinates.size() != otherFV.coordinates.size() )
-            return false;
-
-        double distance = this.getDistanceFrom(otherFV);
-        if (Math.abs(distance) > threshold) 
-            return false;
-        
-        return true;
     }
 }

@@ -45,7 +45,7 @@ public class KMeans {
             FeatureVector fv = new FeatureVector(value.toString(),1);
 
             for (int i = 0; i < centroids.size(); i++) {
-                double distance = fv.getDistanceFrom(centroids.get(i));
+                double distance = Utils.getDistance(fv, centroids.get(i));
                 if (distance < minDistance) {
                     minDistance = distance;
                     minIndex = i;
@@ -100,11 +100,11 @@ public class KMeans {
 
             StringBuilder sb = new StringBuilder();
             List<Double> mean = new ArrayList<>(Collections.nCopies(key.toString().split(",").length, 0.0));
-            int count = 0;
+            int count=0;
 
             for (Text val : values) {
 
-                String[] miniCluster = val.toString().split("#");
+                String[] miniCluster=val.toString().split("#");
 
                 count += Integer.valueOf(miniCluster[miniCluster.length - 1]);
                 for (int i = 1; i < miniCluster.length - 1; i++) {
@@ -146,7 +146,6 @@ public class KMeans {
         final int  maxIterationsNum = 500;
         int IterationNum = 0;
         double threshold = 1e-7;
-        FeatureVector.setThreshold(threshold);
 
         Path outputPath = new Path(args[2] + "/Iteration_" + IterationNum);
 
@@ -180,8 +179,9 @@ public class KMeans {
 
             List<String> oldCentroids = new ArrayList<>(centroids);
             centroids = Utils.getCentroids(outputPath.toString() + "/part-r-00000");
+            
 
-            if(checkIterationEnd(oldCentroids, centroids) ){
+            if(Utils.checkEqual(oldCentroids,centroids,threshold)){
                 break;
             }
             outputPath = new Path(args[2] + "/Iteration_" + IterationNum);
@@ -193,18 +193,7 @@ public class KMeans {
         for (int i = 0; i < centroids.size(); i++) {
             System.out.println("c"+i + ": " + centroids.get(i));
         }
+        
+
     }
-
-
-    private static boolean checkIterationEnd(List<String> oldCentroids, List<String> newCentroids){
-            System.out.println("OC: " + oldCentroids.size() +", NC: " + newCentroids.size());
-            for (int i = 0; i < oldCentroids.size(); i++) {
-                FeatureVector oldCentroid = new FeatureVector(oldCentroids.get(i), 1);
-                FeatureVector newCentroid = new FeatureVector(newCentroids.get(i), 1);
-                if (! newCentroid.equals(oldCentroid) )
-                    return false;
-            }
-            return true;
-    }
-
 }

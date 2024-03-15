@@ -146,6 +146,7 @@ public class KMeans {
         final int  maxIterationsNum = 500;
         int IterationNum = 0;
         double threshold = 1e-7;
+        FeatureVector.setThreshold(threshold);
 
         Path outputPath = new Path(args[2] + "/Iteration_" + IterationNum);
 

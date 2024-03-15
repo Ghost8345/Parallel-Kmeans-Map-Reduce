@@ -64,4 +64,13 @@ public class FeatureVector {
 
         return Math.sqrt(distance);
     }
+
+    public boolean checkEquals(FeatureVector otherFV) {
+        double distance = this.getDistanceFrom(otherFV);
+
+        if (Math.abs(distance) > threshold)
+            return false;
+
+        return true;
+    }
 }

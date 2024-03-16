@@ -6,7 +6,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-public class Utils {
+public class Reader {
 
     private static List<String> loadDataFromFile(String filePath) {
         List<String> data = new ArrayList<>();
@@ -52,29 +52,20 @@ public class Utils {
     }
 
 
-    private static String extractCentroid(String line) {
+    private static String extractCentroid(String line, char delimiter) {
         String[] parts = line.split("\t");
-        return parts[1].split("#")[0] + ",centroid";
+        return parts[1].split(String.valueOf(delimiter))[0] + ",centroid";
     }
 
-    public static List<String> getCentroids(String filePath) {
+    public static List<String> getCentroids(String filePath, char delimiter) {
         List<String> centroids = new ArrayList<>();
         List<String> data = loadDataFromFile(filePath);
         for (String line : data) {
-            String centroid = extractCentroid(line);
+            String centroid = extractCentroid(line, delimiter);
             centroids.add(centroid);
         }
 
         return centroids;
     }
 
-    public static boolean checkEqual(List<String> oldCentroids, List<String> newCentroids, double threshold) {
-        for (int i = 0; i < oldCentroids.size(); i++) {
-            FeatureVector oldCentroid = new FeatureVector(oldCentroids.get(i), 1);
-            FeatureVector newCentroid = new FeatureVector(newCentroids.get(i), 1);
-            if (! oldCentroid.checkEquals(newCentroid) )
-                return false;
-        }
-        return true;
-    }
 }

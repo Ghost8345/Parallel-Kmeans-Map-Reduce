@@ -14,6 +14,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class KMeans {
 
+    public static final char DELIMITER = '_';
+
 
     public static class KMeansMapper
             extends Mapper<Object, Text, Text, Text>{
@@ -51,11 +53,8 @@ public class KMeans {
                     minIndex = i;
                 }
             }
-            Text outputKey = new Text(centroids.get(minIndex).toString());
 
-            Text outputValue = new Text(fv.toString());
-
-            context.write(outputKey,outputValue);
+            context.write(new Text(centroids.get(minIndex).toString()), new Text(fv.toString()));
         }
     }
 
@@ -72,7 +71,7 @@ public class KMeans {
             for (Text val : values) {
                 FeatureVector fv = new FeatureVector(val.toString(),0);
                 count++;
-                sb.append(val).append("#");
+                sb.append(val).append(DELIMITER);
                 List<Double> coordinates = fv.getCoordinates();
                 for (int i = 0; i < coordinates.size(); i++) {
                     sum.set(i, sum.get(i) + coordinates.get(i));
@@ -84,7 +83,7 @@ public class KMeans {
             FeatureVector sumPoint = new FeatureVector();
             sumPoint.setCoordinates(sum);
 
-            sb.insert(0,"#").insert(0, sumPoint.toString());
+            sb.insert(0,DELIMITER).insert(0, sumPoint.toString());
 
 
             context.write(key, new Text(sb.toString()));
@@ -100,17 +99,17 @@ public class KMeans {
 
             StringBuilder sb = new StringBuilder();
             List<Double> mean = new ArrayList<>(Collections.nCopies(key.toString().split(",").length, 0.0));
-            int count=0;
+            int count = 0;
 
             for (Text val : values) {
 
-                String[] miniCluster=val.toString().split("#");
+                String[] miniCluster = val.toString().split(String.valueOf(DELIMITER));
 
                 count += Integer.valueOf(miniCluster[miniCluster.length - 1]);
                 for (int i = 1; i < miniCluster.length - 1; i++) {
                     sb.append(miniCluster[i]);
                     if (i != miniCluster.length - 2) {
-                        sb.append("#");
+                        sb.append(DELIMITER);
                     }
                 }
 
@@ -129,7 +128,7 @@ public class KMeans {
             FeatureVector meanPoint = new FeatureVector();
             meanPoint.setCoordinates(mean);
 
-            sb.insert(0,"#").insert(0, meanPoint.toString());
+            sb.insert(0,DELIMITER).insert(0, meanPoint.toString());
             context.write(key,new Text(sb.toString()));
         }
 
@@ -144,30 +143,29 @@ public class KMeans {
         Path inputPath = new Path(args[1]);
 
         final int  maxIterationsNum = 500;
-        int IterationNum = 0;
+        int iterationNum = 0;
         double threshold = 1e-7;
         FeatureVector.setThreshold(threshold);
 
-        Path outputPath = new Path(args[2] + "/Iteration_" + IterationNum);
+        Path outputPath = new Path(args[2] + "/Iteration_" + iterationNum);
 
         int clustersNumber = Integer.parseInt(args[3]);
 
 
-        List<String> centroids = Utils.getInitialCentroids(inputPath.toString() + "/iris.data", clustersNumber);
+        List<String> centroids = Reader.getInitialCentroids(inputPath.toString() + "/iris.data", clustersNumber);
 
         long start = System.currentTimeMillis();
 
-
         for(int i = 0 ;i < maxIterationsNum; i++) {
 
-            System.out.println("Iteration "+IterationNum+" Started");
-            IterationNum++;
+            System.out.println("Iteration " + iterationNum + " Started");
+            iterationNum++;
             Configuration conf = new Configuration();
             conf.set("clustersNumber", String.valueOf(clustersNumber));
             for (int j = 0; j < clustersNumber; j++) {
                 conf.set("c" + j, centroids.get(j));
             }
-            Job job = Job.getInstance(conf, "K_Means");
+            Job job = Job.getInstance(conf, "KMeans");
             job.setJarByClass(KMeans.class);
             job.setMapperClass(KMeansMapper.class);
             job.setCombinerClass(KMeansCombiner.class);
@@ -179,22 +177,33 @@ public class KMeans {
             job.waitForCompletion(true);
 
             List<String> oldCentroids = new ArrayList<>(centroids);
-            centroids = Utils.getCentroids(outputPath.toString() + "/part-r-00000");
+            centroids = Reader.getCentroids(outputPath.toString() + "/part-r-00000", DELIMITER);
             
 
-            if(Utils.checkEqual(oldCentroids,centroids,threshold)){
+            if(checkEqual(oldCentroids,centroids,threshold)){
                 break;
             }
-            outputPath = new Path(args[2] + "/Iteration_" + IterationNum);
+            outputPath = new Path(args[2] + "/Iteration_" + iterationNum);
         }
         long finish = System.currentTimeMillis();
         long timeElapsed = finish - start;
-        System.out.println("The average running time of the parallel KMeans is "+timeElapsed/1000+" seconds");
+        System.out.println("Total time of the parallel KMeans is "+timeElapsed/1000+" seconds");
+        System.out.println("Number of Iterations is: " + iterationNum);
         System.out.println("Final Centroids are : ");
         for (int i = 0; i < centroids.size(); i++) {
             System.out.println("c"+i + ": " + centroids.get(i));
         }
         
 
+    }
+
+    public static boolean checkEqual(List<String> oldCentroids, List<String> newCentroids, double threshold) {
+        for (int i = 0; i < oldCentroids.size(); i++) {
+            FeatureVector oldCentroid = new FeatureVector(oldCentroids.get(i), 1);
+            FeatureVector newCentroid = new FeatureVector(newCentroids.get(i), 1);
+            if (! oldCentroid.checkEquals(newCentroid) )
+                return false;
+        }
+        return true;
     }
 }

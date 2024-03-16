@@ -80,10 +80,10 @@ public class KMeans {
 
             sb.append(count);
 
-            FeatureVector sumPoint = new FeatureVector();
-            sumPoint.setCoordinates(sum);
+            FeatureVector sumVector = new FeatureVector();
+            sumVector.setCoordinates(sum);
 
-            sb.insert(0,DELIMITER).insert(0, sumPoint.toString());
+            sb.insert(0, DELIMITER).insert(0, sumVector.toString());
 
 
             context.write(key, new Text(sb.toString()));
@@ -103,17 +103,17 @@ public class KMeans {
 
             for (Text val : values) {
 
-                String[] miniCluster = val.toString().split(String.valueOf(DELIMITER));
+                String[] localCluster = val.toString().split(String.valueOf(DELIMITER));
 
-                count += Integer.valueOf(miniCluster[miniCluster.length - 1]);
-                for (int i = 1; i < miniCluster.length - 1; i++) {
-                    sb.append(miniCluster[i]);
-                    if (i != miniCluster.length - 2) {
+                count += Integer.valueOf(localCluster[localCluster.length - 1]);
+                for (int i = 1; i < localCluster.length - 1; i++) {
+                    sb.append(localCluster[i]);
+                    if (i != localCluster.length - 2) {
                         sb.append(DELIMITER);
                     }
                 }
 
-                FeatureVector fv = new FeatureVector(miniCluster[0],0);
+                FeatureVector fv = new FeatureVector(localCluster[0],0);
                 List<Double> coordinates = fv.getCoordinates();
                 for (int i = 0; i < coordinates.size(); i++) {
                     mean.set(i, mean.get(i) + coordinates.get(i));
@@ -125,11 +125,11 @@ public class KMeans {
             }
 
 
-            FeatureVector meanPoint = new FeatureVector();
-            meanPoint.setCoordinates(mean);
+            FeatureVector meanVector= new FeatureVector();
+            meanVector.setCoordinates(mean);
 
-            sb.insert(0,DELIMITER).insert(0, meanPoint.toString());
-            context.write(key,new Text(sb.toString()));
+            sb.insert(0, DELIMITER).insert(0, meanVector.toString());
+            context.write(key, new Text(sb.toString()));
         }
 
     }
@@ -150,7 +150,6 @@ public class KMeans {
         Path outputPath = new Path(args[2] + "/Iteration_" + iterationNum);
 
         int clustersNumber = Integer.parseInt(args[3]);
-
 
         List<String> centroids = Reader.getInitialCentroids(inputPath.toString() + "/iris.data", clustersNumber);
 
